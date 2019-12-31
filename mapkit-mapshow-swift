@@ -1,0 +1,137 @@
+//
+//  ViewController.swift
+//  map
+//
+//  Created by Md.Moshfiqur rahman on 29/12/19.
+//  Copyright © 2019 Md.Moshfiqur rahman. All rights reserved.
+//
+
+import UIKit
+import MapKit
+import CoreLocation
+
+class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate{
+    
+    var latitudeForCurrentlLocation:Double = 0.0
+    var longitudeForCurrentlLocation:Double = 0.0
+    var center = CLLocationCoordinate2D()
+    var locationManagerForCurrentLocation = CLLocationManager()
+    var currentLocation:CLLocation!
+    var points = [CLLocationCoordinate2D]()
+
+    @IBOutlet weak var mapView: MKMapView!
+    
+
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        getCurrentLocation()
+        mapView.delegate = self
+        
+        mapView.mapType = MKMapType.standard
+        mapView.isZoomEnabled = true
+        mapView.isScrollEnabled = true
+        mapView.showsUserLocation = true
+        mapView.center = view.center
+        self.locationManagerForCurrentLocation.delegate = self
+        locationManagerForCurrentLocation.desiredAccuracy = kCLLocationAccuracyBest
+        locationManagerForCurrentLocation.requestAlwaysAuthorization()
+        if CLLocationManager.locationServicesEnabled(){
+            locationManagerForCurrentLocation.stopUpdatingLocation()
+            
+        }
+        
+        
+         
+    }
+    func getCurrentLocation() {
+        if CLLocationManager.locationServicesEnabled(){
+        guard let lat =
+            locationManagerForCurrentLocation.location?.coordinate.latitude
+            else{
+                return print("Fatal error, not getting location service")
+            }
+            let lng = locationManagerForCurrentLocation.location?.coordinate.longitude
+            latitudeForCurrentlLocation = lat
+            longitudeForCurrentlLocation = lng!
+            print("latitude for current location is:\(latitudeForCurrentlLocation) and longitude is :\(longitudeForCurrentlLocation)")
+            
+        }
+        points.append(CLLocationCoordinate2DMake(latitudeForCurrentlLocation,longitudeForCurrentlLocation))
+        points.append(CLLocationCoordinate2DMake(23.5540244750357, 90.5664424959305))
+        let polyline = MKPolyline(coordinates: &points, count: points.count)
+        
+        mapView.addOverlay(polyline)
+        
+        }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let userLocation:CLLocation = locations[0] as CLLocation
+        let center = CLLocationCoordinate2D(latitude: userLocation.coordinate.latitude,longitude: userLocation.coordinate.longitude)
+        let region = MKCoordinateRegion(center:center,span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
+        mapView.setRegion(region, animated: true)
+        let myAnnotation:MKPointAnnotation = MKPointAnnotation()
+        myAnnotation.coordinate = CLLocationCoordinate2DMake(userLocation.coordinate.latitude,userLocation.coordinate.longitude);
+        myAnnotation.title = "current location"
+        myAnnotation.subtitle = "locstion subtitle"
+        mapView.addAnnotation(myAnnotation)
+        let myAnnotation2 : MKPointAnnotation = MKPointAnnotation()
+        myAnnotation2.coordinate = CLLocationCoordinate2DMake(userLocation.coordinate.latitude,userLocation.coordinate.longitude);
+        myAnnotation2.title = "current location"
+        myAnnotation2.subtitle = "location subtitle"
+        mapView.addAnnotation(myAnnotation2)
+        
+        
+        
+    }
+    func locationManager(_ manager: CLLocationManager, didFailWithError error:Error) {
+        print("Error\(error)")
+        
+    }
+    func mapView(_mapView:MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+        let renderer = MKPolygonRenderer(overlay: overlay)
+        renderer.strokeColor = UIColor.red
+        renderer.lineWidth = 4.0
+        
+        return renderer
+        
+        
+    }
+    func reverseGEOCODE(latidue: CLLocationDegrees, longitude:CLLocationDegrees) {
+        let geoCoder = CLGeocoder()
+        let location = CLLocation(latitude: latidue, longitude: longitude)
+        geoCoder.reverseGeocodeLocation(location, completionHandler: { placemarks, Error in guard let addressDict = placemarks?[0].addressDictionary
+            else{
+                return
+            }
+            addressDict.forEach { _ in
+            }
+            if let formattedAddress = addressDict[" formattedAddress"]
+                as? [String]{
+                return
+            }
+            if let locationame = addressDict["name"] as? String{
+                print("location name = \(locationame)")
+            }
+            if let street = addressDict["Thoroughfare"] as? String{
+                print("street = \(street)")
+            }
+            if let city =  addressDict["City"] as?
+                String{
+                print("City = \(city)")
+                
+            }
+            if let country = addressDict["Countery"] as? String{
+                print("country = \(country)")
+            }
+        }
+            )
+        
+    }
+    
+    
+
+    
+
+
+}
+
